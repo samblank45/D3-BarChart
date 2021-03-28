@@ -1,6 +1,5 @@
 import * as d3 from 'd3'
 
-const url = "https://udemy-react-d3.firebaseio.com/tallest_men.json"
 const MARGIN = {TOP: 10, BOTTOM: 50, LEFT: 70, RIGHT: 10}
 const WIDTH = 800 - MARGIN.LEFT - MARGIN.RIGHT
 const HEIGHT = 500 - MARGIN.TOP - MARGIN.BOTTOM
@@ -33,13 +32,23 @@ export default class D3Chart {
 
     this.yAxisGroup = this.svg.append('g')
 
-    
-    d3.json(url).then(data => {
-      this.data = data
+    Promise.all([
+      d3.json("https://udemy-react-d3.firebaseio.com/tallest_men.json"),
+      d3.json("https://udemy-react-d3.firebaseio.com/tallest_women.json")
+    ]).then((response) => {
+      const [men, women] = response
+      let flag = true
+
+      this.data = men
+      this.update()
+
       d3.interval( () => {
+        this.data = flag ? men : women
         this.update()
+        flag = !flag
       }, 1000)  
     })
+    
       
   }
   update() {
@@ -55,32 +64,40 @@ export default class D3Chart {
       .padding(0.6)
 
     const xAxisCall = d3.axisBottom(x)
-    this.xAxisGroup.call(xAxisCall)
+    this.xAxisGroup.transition().duration(500).call(xAxisCall)
 
     const yAxisCall = d3.axisLeft(y)
-    this.yAxisGroup.call(yAxisCall)
+    this.yAxisGroup.transition().duration(500).call(yAxisCall)
 
     //D3 GENERAL UPDATE PATTERN
-    // DATA JOIN
+    // DATA JOIN  select all matching elements and update data
     const rects = this.svg.selectAll('rect')
       .data(this.data)
 
-    //EXIT
-    rects.exit().remove()
+    //EXIT  remove elements that don't exist in our new array of data
+    rects.exit()
+      .transition().duration(500)
+        .attr("height", 0)
+        .attr("y", HEIGHT)
+        .remove()
 
-    //UPDATE
-    rects.attr("class","update")
+    //UPDATE  set attributes for existing elements
+    rects.transition().duration(500)
       .attr("x", d => x(d.name))
       .attr("y", d => y(d.height))
       .attr("width", x.bandwidth)
       .attr("height", d => HEIGHT - y(d.height))
 
-    // ENTER
+    // ENTER  set attriutes for new items in data array 
     rects.enter().append('rect')
       .attr("x", d => x(d.name))
-      .attr("y", d => y(d.height))
       .attr("width", x.bandwidth)
-      .attr("height", d => HEIGHT - y(d.height))
       .attr("fill", "grey")
+      .attr("y", HEIGHT)
+      .transition().duration(500)
+        .attr("height", d => HEIGHT - y(d.height))
+        .attr("y", d => y(d.height))
+
+
   }
 }
