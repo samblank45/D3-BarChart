@@ -35,8 +35,8 @@ export default class D3Chart {
       d3.json("https://udemy-react-d3.firebaseio.com/tallest_men.json"),
       d3.json("https://udemy-react-d3.firebaseio.com/tallest_women.json")
     ]).then((response) => {
-      this.menData = response(0)
-      this.womenData = response(1)
+      this.menData = response[0]
+      this.womenData = response[1]
       this.update("men")
     })
     

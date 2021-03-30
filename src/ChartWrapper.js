@@ -8,21 +8,12 @@ export default class ChartWrapper extends React.Component {
     this.setState({
       chart: new D3Chart(this.chartRef.current)
     })
-
   }
 
-  shouldComponentUpdate() {
-    return false
-  }
-
-  static getDerivedStateFromProps(nextProps, PrevState) {
-    if (nextProps.gender !== PrevState.gender) {
-      if (PrevState.chart) {
-        PrevState.chart.update(nextProps.gender)
-      }
-      return {gender: nextProps.gender}
+  componentDidUpdate(prevProps) {
+    if (prevProps.gender !== this.props.gender) {
+      this.state.chart.update(this.props.gender)
     }
-    return null
   }
 
   render() {
